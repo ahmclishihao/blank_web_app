@@ -31,14 +31,39 @@ public class StringJacksonMapper extends ObjectMapper {
         simpleModule.addSerializer(Short.class, ToStringSerializer.instance);
         simpleModule.addSerializer(Integer.class, ToStringSerializer.instance);
         simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
-        simpleModule.addSerializer(Float.class, ToStringSerializer.instance);
-        simpleModule.addSerializer(Double.class, ToStringSerializer.instance);
+        simpleModule.addSerializer(Float.class, DecimalToStringSerializer.instance);
+        simpleModule.addSerializer(Double.class, DecimalToStringSerializer.instance);
         simpleModule.addSerializer(Boolean.class, ToStringSerializer.instance);
         simpleModule.addSerializer(BigDecimal.class, ToStringSerializer.instance);
         simpleModule.addSerializer(BigInteger.class, ToStringSerializer.instance);
 
         this.registerModule(simpleModule);
         this.registerModule(new Hibernate5Module());
+    }
+
+    /**
+     * 小数 转 string 不使用科学计数法
+     */
+    public static class DecimalToStringSerializer extends ToStringSerializer{
+        /**
+         * Singleton instance to use.
+         */
+        public final static DecimalToStringSerializer instance = new DecimalToStringSerializer();
+
+        @Override
+        public void serialize(Object value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+
+            // 将double，float类型转为非科学技术的类型
+            // 精度为 2
+            DecimalFormat decimalFormat = new DecimalFormat("#.##");
+
+            if(value instanceof Double
+                    ||value instanceof Float){
+                value = decimalFormat.format(value);
+            }
+
+            gen.writeString(value.toString());
+        }
     }
 
 }
